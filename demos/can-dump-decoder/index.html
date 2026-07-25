@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>CAN Dump Decoder · AutoDash</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Sora:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="bg" aria-hidden="true"></div>
+    <main class="shell">
+      <header class="hero">
+        <p class="brand">AutoDash</p>
+        <h1>CAN Dump Decoder</h1>
+        <p class="lede">
+          Decode Racepak/Holley <code>candump</code> logs with the same mask and
+          scaling as the Pi dash backend — no car hardware required.
+        </p>
+      </header>
+
+      <section class="controls" aria-label="Load dump">
+        <label class="field">
+          <span>Sample</span>
+          <select id="sampleSelect">
+            <option value="">Choose a sample…</option>
+            <option value="./samples/racepak-running-sample.log">Racepak running</option>
+            <option value="./samples/racepak-idle-sample.log">Racepak idle / not running</option>
+            <option value="./samples/holley-running-sample.log">Holley running</option>
+          </select>
+        </label>
+
+        <label class="field file-field">
+          <span>Or upload .log</span>
+          <input id="fileInput" type="file" accept=".log,.txt,text/plain" />
+        </label>
+
+        <label class="check">
+          <input id="includeUnknown" type="checkbox" />
+          Include unknown frame IDs in event list
+        </label>
+      </section>
+
+      <section class="stats" id="stats" hidden></section>
+      <section class="gauges" id="gauges" aria-live="polite"></section>
+
+      <section class="events-wrap">
+        <div class="events-head">
+          <h2>Decoded events</h2>
+          <p id="eventsMeta" class="muted">Load a dump to begin.</p>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>CAN ID</th>
+                <th>Signals</th>
+              </tr>
+            </thead>
+            <tbody id="eventsBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
