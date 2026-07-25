@@ -1,3 +1,5 @@
+import { createSurface3D } from "./surface3d.js";
+
 const DEFINITION_COLUMNS = [
   "kind",
   "category",
@@ -420,6 +422,13 @@ function loadTable() {
 let simValues = loadTable();
 const simTable = document.getElementById("simTable");
 const simCanvas = document.getElementById("simHeatmap");
+const simSurface = createSurface3D(document.getElementById("simSurface3d"), {
+  metaEl: document.getElementById("simSurfaceMeta"),
+  xName: "RPM",
+  yName: "Load",
+  zName: "value",
+  title: "Simulator",
+});
 
 function renderSimTable() {
   simTable.innerHTML = `
@@ -506,6 +515,19 @@ function drawHeatmap() {
   ctx.strokeRect(px - 6, py - 6, 12, 12);
 }
 
+function nearestIndex(axis, value) {
+  let best = 0;
+  let bestDistance = Infinity;
+  axis.forEach((point, index) => {
+    const distance = Math.abs(point - value);
+    if (distance < bestDistance) {
+      best = index;
+      bestDistance = distance;
+    }
+  });
+  return best;
+}
+
 function updateSimulation() {
   const rpm = Number(document.getElementById("simRpm").value);
   const load = Number(document.getElementById("simLoad").value);
@@ -514,7 +536,29 @@ function updateSimulation() {
   document.getElementById("simValue").textContent =
     interpolatedValue(rpm, load).toFixed(2);
   drawHeatmap();
+  simSurface.setData({
+    xLabels: X_AXIS,
+    yLabels: Y_AXIS,
+    zGrid: simValues,
+    xName: "RPM",
+    yName: "Load kPa",
+    zName: "value",
+    title: "Simulator VE-like table",
+  });
+  simSurface.setMarker({
+    xi: nearestIndex(X_AXIS, rpm),
+    yi: nearestIndex(Y_AXIS, load),
+  });
 }
+
+document
+  .getElementById("simSurfaceTranspose")
+  .addEventListener("change", (event) => {
+    simSurface.setTranspose(event.target.checked);
+  });
+document
+  .getElementById("simSurfaceReset")
+  .addEventListener("click", () => simSurface.resetView());
 
 simTable.addEventListener("input", (event) => {
   const cell = event.target.closest("[data-sim-row]");

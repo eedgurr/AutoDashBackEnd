@@ -762,6 +762,38 @@ tr.clickable:hover {
   background: #0b100e;
 }
 
+.surface3d-block {
+  padding: 0 0.7rem 0.7rem;
+}
+
+.surface3d-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem 0.7rem;
+  margin-bottom: 0.4rem;
+}
+
+.surface3d-toolbar .muted {
+  margin: 0;
+  flex: 1 1 180px;
+  font-size: 0.78rem;
+}
+
+.surface3d-canvas {
+  display: block;
+  width: 100%;
+  height: 320px;
+  border: 1px solid var(--line);
+  background: #0b100e;
+  cursor: grab;
+  touch-action: none;
+}
+
+.surface3d-canvas:active {
+  cursor: grabbing;
+}
+
 .workbench-toolbar {
   display: flex;
   flex-wrap: wrap;

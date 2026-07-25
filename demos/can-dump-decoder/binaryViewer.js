@@ -1,3 +1,5 @@
+import { createSurface3D } from "./surface3d.js";
+
 const PAGE_SIZE = 256;
 const BYTES_PER_ROW = 16;
 
@@ -25,6 +27,13 @@ const binExport = document.getElementById("binExport");
 const binUndo = document.getElementById("binUndo");
 const byteApply = document.getElementById("byteApply");
 const xdfCanvas = document.getElementById("xdfHeatmap");
+const xdfSurface = createSurface3D(document.getElementById("xdfSurface3d"), {
+  metaEl: document.getElementById("xdfSurfaceMeta"),
+  xName: "col",
+  yName: "row",
+  zName: "value",
+  title: "XDF",
+});
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -635,6 +644,40 @@ function drawXdfHeatmap(values, item) {
   });
 }
 
+function pushXdfSurface(item, values) {
+  if (!item || !values.length) {
+    xdfSurface.setData({
+      xLabels: [],
+      yLabels: [],
+      zGrid: [],
+      title: "XDF",
+    });
+    xdfSurface.setMarker(null);
+    return;
+  }
+  const columns = Math.max(1, item.columns);
+  const rows = Math.max(1, item.rows);
+  const zGrid = Array.from({ length: rows }, (_, row) =>
+    Array.from({ length: columns }, (_, column) => {
+      const value = values[row * columns + column];
+      return Number.isFinite(value) ? value : 0;
+    })
+  );
+  xdfSurface.setData({
+    xLabels: Array.from({ length: columns }, (_, index) => index),
+    yLabels: Array.from({ length: rows }, (_, index) => index),
+    zGrid,
+    xName: "col",
+    yName: "row",
+    zName: item.units || "value",
+    title: item.title,
+  });
+  xdfSurface.setMarker({
+    xi: Math.floor(columns / 2),
+    yi: Math.floor(rows / 2),
+  });
+}
+
 function renderXdfPreview() {
   const item = state.selectedItem;
   const title = document.getElementById("xdfPreviewTitle");
@@ -645,6 +688,7 @@ function renderXdfPreview() {
     meta.textContent = "Select an XDF item to jump into the binary.";
     table.innerHTML = '<p class="muted">No item selected</p>';
     drawXdfHeatmap([], null);
+    pushXdfSurface(null, []);
     renderHex();
     return;
   }
@@ -659,6 +703,7 @@ function renderXdfPreview() {
     table.innerHTML =
       '<p class="muted">XDF loaded. Load the matching BIN to read values.</p>';
     drawXdfHeatmap([], item);
+    pushXdfSurface(item, []);
     renderHex();
     return;
   }
@@ -686,12 +731,21 @@ function renderXdfPreview() {
     </table>
   `;
   drawXdfHeatmap(values, item);
+  pushXdfSurface(item, values);
   renderHex();
 }
 
 document
   .getElementById("xdfApplyMath")
   .addEventListener("change", renderXdfPreview);
+document
+  .getElementById("xdfSurfaceTranspose")
+  .addEventListener("change", (event) => {
+    xdfSurface.setTranspose(event.target.checked);
+  });
+document
+  .getElementById("xdfSurfaceReset")
+  .addEventListener("click", () => xdfSurface.resetView());
 new ResizeObserver(() => renderXdfPreview()).observe(xdfCanvas);
 
 // ---- Synthetic, openly generated demonstration ---------------------------

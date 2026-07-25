@@ -32,6 +32,13 @@ intentionally not labeled as XDF: XDF/ADX, DBC, A2L and ODX describe different
 layers, and safe flashing additionally needs target-specific segment,
 checksum, security and recovery logic.
 
+## 3D map surface
+
+Browser canvas surface inspired by [hjtrbo/Table-Editor-3D](https://github.com/hjtrbo/Table-Editor-3D)
+(WinForms/C#). Drag to rotate, wheel/pinch to zoom, optional transpose, and a
+marker synced to the simulator operating point or the center of an XDF table.
+This is a research view only—not a port of the Windows Editor3D control.
+
 ## BIN / XDF viewer
 
 - Auto-loads a synthetic BIN/XDF so the page is usable before you attach files

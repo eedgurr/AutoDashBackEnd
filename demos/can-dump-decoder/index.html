@@ -316,6 +316,17 @@
           <div id="xdfRawTable" class="table-scroll xdf-raw-table"></div>
           <canvas id="xdfHeatmap" aria-label="XDF binary table heat map"></canvas>
         </div>
+        <div class="surface3d-block">
+          <div class="surface3d-toolbar">
+            <p id="xdfSurfaceMeta" class="muted">XDF 3D map</p>
+            <label class="check">
+              <input id="xdfSurfaceTranspose" type="checkbox" />
+              Transpose
+            </label>
+            <button id="xdfSurfaceReset" class="btn btn-ghost" type="button">Reset view</button>
+          </div>
+          <canvas id="xdfSurface3d" class="surface3d-canvas" aria-label="XDF table 3D surface"></canvas>
+        </div>
       </div>
     </section>
 
@@ -394,6 +405,17 @@
             <table id="simTable" class="sim-table"></table>
           </div>
           <canvas id="simHeatmap" aria-label="Calibration table heat map"></canvas>
+        </div>
+        <div class="surface3d-block">
+          <div class="surface3d-toolbar">
+            <p id="simSurfaceMeta" class="muted">Simulator 3D map</p>
+            <label class="check">
+              <input id="simSurfaceTranspose" type="checkbox" />
+              Transpose
+            </label>
+            <button id="simSurfaceReset" class="btn btn-ghost" type="button">Reset view</button>
+          </div>
+          <canvas id="simSurface3d" class="surface3d-canvas" aria-label="Calibration table 3D surface"></canvas>
         </div>
       </section>
     </div>
