@@ -7,6 +7,7 @@ import {
   guessEncodings,
   parseCandumpLine,
 } from "./decoder.js";
+import { createLogChart } from "./logChart.js";
 
 const sampleSelect = document.getElementById("sampleSelect");
 const fileInput = document.getElementById("fileInput");
@@ -38,6 +39,7 @@ const state = {
   socket: null,
   boardName: "board",
 };
+let chartViewer = null;
 
 wsUrlInput.value = `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws`;
 
@@ -59,6 +61,7 @@ function renderAll() {
   renderTrace();
   renderInspect();
   renderSignals();
+  chartViewer?.refresh();
 }
 
 function renderStats() {
@@ -272,6 +275,7 @@ function selectId(idHex) {
   for (let i = state.frames.length - 1; i >= 0; i -= 1) {
     if (state.frames[i].idHex === idHex) {
       selectFrame(state.frames[i].index);
+      chartViewer?.focusId(idHex);
       followTail.checked = false;
       return;
     }
@@ -516,6 +520,18 @@ function connectWs() {
 wsConnectBtn.addEventListener("click", connectWs);
 wsDisconnectBtn.addEventListener("click", () => {
   if (state.socket) state.socket.close();
+});
+
+chartViewer = createLogChart({
+  getState: () => state,
+  onSeek: (index) => {
+    followTail.checked = false;
+    selectFrame(index);
+    document.querySelector(".trace-panel")?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+    });
+  },
 });
 
 loadSample(sampleSelect.value).catch(() => {

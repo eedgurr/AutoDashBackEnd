@@ -66,6 +66,44 @@
       </label>
     </section>
 
+    <section class="panel chart-panel">
+      <div class="panel-head">
+        <div>
+          <h2>Log viewer</h2>
+          <p class="muted">Overlay decoded signals or raw bytes · tap chart to seek trace</p>
+        </div>
+        <label class="check">
+          <input id="chartNormalize" type="checkbox" checked />
+          Normalize
+        </label>
+      </div>
+      <div class="chart-toolbar">
+        <label class="field grow">
+          <span>Series</span>
+          <select id="chartSeries"></select>
+        </label>
+        <button id="chartAdd" type="button" class="btn">Add</button>
+        <button id="chartClear" type="button" class="btn btn-ghost">Clear</button>
+      </div>
+      <div id="chartLegend" class="chart-legend"></div>
+      <div class="chart-wrap">
+        <canvas id="logChart" aria-label="CAN log timeline chart"></canvas>
+        <p id="chartEmpty" class="chart-empty">Add a mapped signal or CAN byte to plot it.</p>
+      </div>
+      <div class="range-controls">
+        <label class="field grow">
+          <span>Window start <output id="rangeStartLabel">0%</output></span>
+          <input id="rangeStart" type="range" min="0" max="99" value="0" />
+        </label>
+        <label class="field grow">
+          <span>Window end <output id="rangeEndLabel">100%</output></span>
+          <input id="rangeEnd" type="range" min="1" max="100" value="100" />
+        </label>
+        <button id="chartReset" type="button" class="btn btn-ghost">Reset zoom</button>
+      </div>
+      <p id="chartCursor" class="chart-cursor muted">No cursor</p>
+    </section>
+
     <div class="workspace">
       <section class="panel catalog-panel">
         <div class="panel-head">

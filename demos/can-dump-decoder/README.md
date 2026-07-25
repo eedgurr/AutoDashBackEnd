@@ -1,44 +1,40 @@
-# CAN Dump Decoder Demo
+# AutoDash CAN Analyzer Demo
 
-Phone/cloud-friendly demo that decodes Racepak/Holley `candump` logs using the same ID mask (`0xfffff800`) and big-endian `/256` scaling as `src/CAN/racepakDecoder.js`.
+Trace-first CAN datalog tool (USB-analyzer style) for Racepak/Holley `candump` logs and live boards.
 
-Also speaks a **live board protocol** so ESP32 / Pi / STM32 / Arduino can drive the same gauges.
+## What it is
 
-## Run (file mode)
+Workflow mirrors OEM CAN reverse engineering:
+
+1. **Capture / load** a datalog  
+2. **ID catalog** — unique IDs, counts, Hz  
+3. **Trace** — time, Δms, raw bytes, changed-byte highlight  
+4. **Inspect** — payload + mapped decode + encoding guesses (`i32BE/256`, float, LE/BE)  
+5. **Log viewer** — overlay decoded signals or raw `CAN ID / byte` channels, zoom, tap-to-seek  
+6. **Mapped signals** — known Racepak map (same as Pi dash)
+
+The chart normalizes each channel by default so RPM, voltage, temperature, and
+raw bytes can be compared for correlated movement. Disable **Normalize** to
+show all selected channels on one shared numeric scale.
+
+## Run
 
 ```bash
-node demos/can-dump-decoder/server.mjs
-# open http://127.0.0.1:4173
+npm run demo:can-decoder
+# http://127.0.0.1:4173
+
+AUTODASH_SIM_BOARD=1 npm run demo:can-decoder:sim
+# UI → Connect on Live WS
 
 node demos/can-dump-decoder/cli.mjs demos/can-dump-decoder/samples/racepak-running-sample.log
 ```
 
-## Run (live sim board — no hardware)
-
-```bash
-AUTODASH_SIM_BOARD=1 npm run demo:can-decoder
-```
-
-Open the UI → tap **Connect** on the Live board WebSocket → gauges animate.
-
 ## Dev boards
 
-See [`boards/README.md`](./boards/README.md) for:
-
-- ESP32 SoftAP / TWAI sketch
-- Arduino + STM32 USB-serial sims
-- Pi `serial_to_ws.py` bridge / candump replay
-
-## Samples
-
-Bundled excerpts from `can_dumps/`:
-
-- `samples/racepak-running-sample.log`
-- `samples/racepak-idle-sample.log`
-- `samples/holley-running-sample.log`
+See [`boards/README.md`](./boards/README.md) for ESP32 / Arduino / STM32 / Pi bridges using the same JSON protocol.
 
 ## Notes
 
-- Racepak samples decode to sensible dash values (RPM, AFR, CTS, etc.).
-- Some Holley captures in `can_dumps/` share similar 29-bit IDs but do **not** use the same `/256` int32 scaling. The UI warns when readings are out of sane range.
-- AN400 little-endian maps from `src/CAN/an400Decorder.js` are not wired into this demo yet.
+- Racepak samples decode cleanly with BE int32 `/256`.
+- Some Holley dumps share IDs but different encoding — use **Inspect → encoding guesses**.
+- AN400 LE maps not wired yet.
