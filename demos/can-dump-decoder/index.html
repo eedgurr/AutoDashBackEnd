@@ -167,6 +167,131 @@
       <div class="signals" id="signals"></div>
     </section>
 
+    <section class="panel workbench-panel">
+      <div class="panel-head">
+        <div>
+          <h2>Definition workbook</h2>
+          <p class="muted">Neutral field table for CAN, OBD/UDS and BIN research · editable · CSV round-trip</p>
+        </div>
+        <p id="definitionStatus" class="muted">Saved locally</p>
+      </div>
+      <div class="workbench-toolbar">
+        <button id="definitionAdd" class="btn" type="button">Add field</button>
+        <button id="definitionDelete" class="btn btn-ghost" type="button">Delete selected</button>
+        <label class="btn btn-ghost file-button">
+          Import CSV
+          <input id="definitionImport" type="file" accept=".csv,text/csv" hidden />
+        </label>
+        <button id="definitionExport" class="btn btn-ghost" type="button">Export CSV</button>
+        <button id="definitionJson" class="btn btn-ghost" type="button">Export project</button>
+        <button id="definitionReset" class="btn btn-ghost" type="button">Reset example</button>
+      </div>
+      <div class="table-scroll definition-scroll">
+        <table class="definition-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Kind</th>
+              <th>Category</th>
+              <th>Name</th>
+              <th>Source</th>
+              <th>Address / ID</th>
+              <th>Start</th>
+              <th>Bits / shape</th>
+              <th>Endian</th>
+              <th>Signed</th>
+              <th>Scale</th>
+              <th>Offset</th>
+              <th>Unit</th>
+              <th>Axes / request</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody id="definitionBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <div class="lower-workspace">
+      <section class="panel calculator-panel">
+        <div class="panel-head">
+          <div>
+            <h2>Decode calculator</h2>
+            <p class="muted">engineering = raw × scale + offset</p>
+          </div>
+        </div>
+        <div class="calculator-grid">
+          <label class="field">
+            <span>Hex bytes</span>
+            <input id="calcHex" type="text" value="00052C34" spellcheck="false" />
+          </label>
+          <label class="field">
+            <span>Type</span>
+            <select id="calcType">
+              <option value="u8">uint8</option>
+              <option value="i8">int8</option>
+              <option value="u16">uint16</option>
+              <option value="i16">int16</option>
+              <option value="u32">uint32</option>
+              <option value="i32" selected>int32</option>
+              <option value="f32">float32</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Endian</span>
+            <select id="calcEndian">
+              <option value="be" selected>Big endian</option>
+              <option value="le">Little endian</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Scale</span>
+            <input id="calcScale" type="number" step="any" value="0.00390625" />
+          </label>
+          <label class="field">
+            <span>Offset</span>
+            <input id="calcOffset" type="number" step="any" value="0" />
+          </label>
+          <div class="calc-result">
+            <span>Raw</span><strong id="calcRaw">—</strong>
+            <span>Engineering</span><strong id="calcEngineering">—</strong>
+            <span>Binary</span><code id="calcBinary">—</code>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel simulator-panel">
+        <div class="panel-head">
+          <div>
+            <h2>Calibration table simulator</h2>
+            <p class="muted">Editable example only · RPM × load → value</p>
+          </div>
+          <button id="simExport" class="btn btn-ghost" type="button">Export table CSV</button>
+        </div>
+        <div class="sim-controls">
+          <label class="field grow">
+            <span>RPM <output id="simRpmLabel">3000</output></span>
+            <input id="simRpm" type="range" min="800" max="7000" step="100" value="3000" />
+          </label>
+          <label class="field grow">
+            <span>Load kPa <output id="simLoadLabel">100</output></span>
+            <input id="simLoad" type="range" min="20" max="220" step="5" value="100" />
+          </label>
+          <div class="sim-output">
+            <span>Interpolated</span>
+            <strong id="simValue">—</strong>
+          </div>
+        </div>
+        <div class="sim-layout">
+          <div class="table-scroll sim-table-wrap">
+            <table id="simTable" class="sim-table"></table>
+          </div>
+          <canvas id="simHeatmap" aria-label="Calibration table heat map"></canvas>
+        </div>
+      </section>
+    </div>
+
     <script type="module" src="./app.js"></script>
+    <script type="module" src="./workbench.js"></script>
   </body>
 </html>

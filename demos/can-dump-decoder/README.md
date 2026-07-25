@@ -17,6 +17,21 @@ The chart normalizes each channel by default so RPM, voltage, temperature, and
 raw bytes can be compared for correlated movement. Disable **Normalize** to
 show all selected channels on one shared numeric scale.
 
+## Definition / tuning research workbench
+
+- Square-corner dark UI
+- Editable master field table
+- Flexible CSV import and Excel-compatible CSV export
+- Project JSON export
+- Hex/endian/signed/scale/offset decode calculator
+- Editable RPM × load calibration-table simulator with interpolation and heatmap
+
+See [`definitions/master-field-table.csv`](./definitions/master-field-table.csv)
+and [`definitions/README.md`](./definitions/README.md). The neutral workbook is
+intentionally not labeled as XDF: XDF/ADX, DBC, A2L and ODX describe different
+layers, and safe flashing additionally needs target-specific segment,
+checksum, security and recovery logic.
+
 ## Run
 
 ```bash

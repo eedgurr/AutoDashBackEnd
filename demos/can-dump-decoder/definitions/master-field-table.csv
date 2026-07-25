@@ -1,0 +1,9 @@
+kind,category,name,source,address,start,shape,endian,signed,scale,offset,unit,axes,notes
+signal,Engine,Engine Speed,CAN,1E001000,B4,32,BE,yes,0.00390625,0,RPM,,Racepak base ID mask FFFFF800; verified from sample log
+signal,Electrical,Battery Voltage,CAN,1E025000,B4,32,BE,yes,0.00390625,0,V,,Example decoded field; not an OEM calibration address
+pid,Generic OBD2,Engine RPM,J1979,Mode 01 PID 0C,"A,B",16,BE,no,0.25,0,RPM,request 7DF: 02 01 0C,Standard formula ((A*256)+B)/4
+table,Fuel,Main Fuel / VE,BIN,strategy-specific,,8x6,strategy,no,definition,definition,%,X=RPM; Y=load kPa,Requires matching strategy/OS definition
+table,Ignition,Main Spark,BIN,strategy-specific,,XxY,strategy,yes,definition,definition,deg,X=RPM; Y=load,Common standalone/OEM category; no proprietary addresses
+table,Boost,Boost Target,BIN,strategy-specific,,XxY,strategy,no,definition,definition,kPa,X=RPM; Y=driver demand,Typical standalone table model
+table,Transmission,Shift Schedule,BIN,strategy-specific,,XxY,strategy,no,definition,definition,mph,X=throttle; Y=gear,Example field category
+routine,Diagnostics,Service Routine,UDS,SID 31,,request,n/a,n/a,,,,session/security/OEM-specific,Verify session preconditions and routine ID before use
