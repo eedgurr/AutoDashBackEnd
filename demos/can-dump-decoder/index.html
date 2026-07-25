@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>AutoDash CAN Analyzer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand-block">
+        <p class="brand">AutoDash</p>
+        <h1>CAN Analyzer</h1>
+      </div>
+      <p class="tagline">Datalog trace · ID catalog · OEM-style decode</p>
+    </header>
+
+    <section class="toolbar" aria-label="Capture sources">
+      <label class="field">
+        <span>Source</span>
+        <select id="sampleSelect">
+          <option value="./samples/racepak-running-sample.log">Racepak running</option>
+          <option value="./samples/racepak-idle-sample.log">Racepak idle</option>
+          <option value="./samples/holley-running-sample.log">Holley running</option>
+        </select>
+      </label>
+      <label class="field">
+        <span>Upload dump</span>
+        <input id="fileInput" type="file" accept=".log,.txt,text/plain" />
+      </label>
+      <label class="field grow">
+        <span>Live WS</span>
+        <input id="wsUrl" type="text" spellcheck="false" />
+      </label>
+      <div class="btn-row">
+        <button id="wsConnect" type="button" class="btn">Connect</button>
+        <button id="wsDisconnect" type="button" class="btn btn-ghost" disabled>Stop</button>
+      </div>
+      <p id="wsStatus" class="status-line">File mode</p>
+    </section>
+
+    <section class="stats" id="stats" aria-live="polite"></section>
+
+    <section class="filters" aria-label="Trace filters">
+      <label class="field grow">
+        <span>Filter ID / base</span>
+        <input id="idFilter" type="text" placeholder="e.g. 1E001 or 1E0252D0" spellcheck="false" />
+      </label>
+      <label class="check">
+        <input id="onlyChanged" type="checkbox" />
+        Changed only
+      </label>
+      <label class="check">
+        <input id="onlyKnown" type="checkbox" />
+        Mapped only
+      </label>
+      <label class="check">
+        <input id="followTail" type="checkbox" checked />
+        Follow
+      </label>
+    </section>
+
+    <section class="panel chart-panel">
+      <div class="panel-head">
+        <div>
+          <h2>Log viewer</h2>
+          <p class="muted">Overlay decoded signals or raw bytes · tap chart to seek trace</p>
+        </div>
+        <label class="check">
+          <input id="chartNormalize" type="checkbox" checked />
+          Normalize
+        </label>
+      </div>
+      <div class="chart-toolbar">
+        <label class="field grow">
+          <span>Series</span>
+          <select id="chartSeries"></select>
+        </label>
+        <button id="chartAdd" type="button" class="btn">Add</button>
+        <button id="chartClear" type="button" class="btn btn-ghost">Clear</button>
+      </div>
+      <div id="chartLegend" class="chart-legend"></div>
+      <div class="chart-wrap">
+        <canvas id="logChart" aria-label="CAN log timeline chart"></canvas>
+        <p id="chartEmpty" class="chart-empty">Add a mapped signal or CAN byte to plot it.</p>
+      </div>
+      <div class="range-controls">
+        <label class="field grow">
+          <span>Window start <output id="rangeStartLabel">0%</output></span>
+          <input id="rangeStart" type="range" min="0" max="99" value="0" />
+        </label>
+        <label class="field grow">
+          <span>Window end <output id="rangeEndLabel">100%</output></span>
+          <input id="rangeEnd" type="range" min="1" max="100" value="100" />
+        </label>
+        <button id="chartReset" type="button" class="btn btn-ghost">Reset zoom</button>
+      </div>
+      <p id="chartCursor" class="chart-cursor muted">No cursor</p>
+    </section>
+
+    <div class="workspace">
+      <section class="panel catalog-panel">
+        <div class="panel-head">
+          <h2>ID catalog</h2>
+          <p id="catalogMeta" class="muted">Unique IDs / rate</p>
+        </div>
+        <div class="table-scroll catalog-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Cnt</th>
+                <th>Hz</th>
+                <th>Map</th>
+              </tr>
+            </thead>
+            <tbody id="catalogBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel trace-panel">
+        <div class="panel-head">
+          <h2>Trace</h2>
+          <p id="traceMeta" class="muted">Datalog frames</p>
+        </div>
+        <div class="table-scroll trace-scroll" id="traceScroll">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Time</th>
+                <th>Δms</th>
+                <th>ID</th>
+                <th>DLC</th>
+                <th>Data</th>
+                <th>Decode</th>
+              </tr>
+            </thead>
+            <tbody id="traceBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel inspect-panel">
+        <div class="panel-head">
+          <h2>Inspect</h2>
+          <p id="inspectMeta" class="muted">Select a frame</p>
+        </div>
+        <div id="inspectBody" class="inspect-body">
+          <p class="muted">Click a trace row or ID to inspect bytes like an OEM CAN RE session.</p>
+        </div>
+      </section>
+    </div>
+
+    <section class="panel signals-panel">
+      <div class="panel-head">
+        <h2>Mapped signals</h2>
+        <p class="muted">Racepak `/256` BE map (same as Pi dash)</p>
+      </div>
+      <div class="signals" id="signals"></div>
+    </section>
+
+    <section class="panel workbench-panel">
+      <div class="panel-head">
+        <div>
+          <h2>Definition workbook</h2>
+          <p class="muted">Neutral field table for CAN, OBD/UDS and BIN research · editable · CSV round-trip</p>
+        </div>
+        <p id="definitionStatus" class="muted">Saved locally</p>
+      </div>
+      <div class="workbench-toolbar">
+        <button id="definitionAdd" class="btn" type="button">Add field</button>
+        <button id="definitionDelete" class="btn btn-ghost" type="button">Delete selected</button>
+        <label class="btn btn-ghost file-button">
+          Import CSV
+          <input id="definitionImport" type="file" accept=".csv,text/csv" hidden />
+        </label>
+        <button id="definitionExport" class="btn btn-ghost" type="button">Export CSV</button>
+        <button id="definitionJson" class="btn btn-ghost" type="button">Export project</button>
+        <button id="definitionReset" class="btn btn-ghost" type="button">Reset example</button>
+      </div>
+      <div class="table-scroll definition-scroll">
+        <table class="definition-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Kind</th>
+              <th>Category</th>
+              <th>Name</th>
+              <th>Source</th>
+              <th>Address / ID</th>
+              <th>Start</th>
+              <th>Bits / shape</th>
+              <th>Endian</th>
+              <th>Signed</th>
+              <th>Scale</th>
+              <th>Offset</th>
+              <th>Unit</th>
+              <th>Axes / request</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody id="definitionBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel binary-panel">
+      <div class="panel-head">
+        <div>
+          <h2>BIN / XDF viewer</h2>
+          <p class="muted">Client-side only · iPhone-friendly openers · VIN scan · staged hex edits · XDF navigation</p>
+        </div>
+        <p id="binaryStatus" class="muted">Load a BIN and/or XDF</p>
+      </div>
+      <div class="binary-toolbar">
+        <button id="binaryDemo" class="btn" type="button">Load synthetic demo</button>
+        <button id="binarySampleFetch" class="btn btn-ghost" type="button">Fetch sample BIN+XDF</button>
+        <a class="btn btn-ghost" href="./samples/synthetic-demo.bin" download>Download sample BIN</a>
+        <a class="btn btn-ghost" href="./samples/synthetic-demo.xdf" download>Download sample XDF</a>
+        <button id="binExport" class="btn btn-ghost" type="button" disabled>Export modified BIN</button>
+        <button id="binUndo" class="btn btn-ghost" type="button" disabled>Undo edits</button>
+      </div>
+      <div class="binary-openers">
+        <p class="muted binary-tip">
+          iPhone tip: Files often look grayed out when apps filter by extension.
+          These openers accept any file; we detect BIN vs XDF after you pick one.
+        </p>
+        <label class="file-field">
+          <span>Open BIN / ROM / any binary</span>
+          <input id="binFile" type="file" />
+        </label>
+        <label class="file-field">
+          <span>Open XDF / XML definition</span>
+          <input id="xdfFile" type="file" />
+        </label>
+        <label class="file-field">
+          <span>Open any file (auto-detect)</span>
+          <input id="anyBinaryFile" type="file" multiple />
+        </label>
+      </div>
+      <div class="binary-workspace">
+        <div class="binary-column xdf-column">
+          <label class="field">
+            <span>XDF items</span>
+            <input id="xdfFilter" type="text" placeholder="Filter title / category" />
+          </label>
+          <p id="xdfMeta" class="muted">No XDF loaded</p>
+          <div id="xdfItems" class="xdf-items"></div>
+        </div>
+        <div class="binary-column hex-column">
+          <div class="hex-controls">
+            <label class="field">
+              <span>Jump offset</span>
+              <input id="hexJump" type="text" placeholder="0x1000" spellcheck="false" />
+            </label>
+            <button id="hexJumpButton" class="btn btn-ghost" type="button">Go</button>
+            <label class="field grow">
+              <span>Find hex / ASCII</span>
+              <input id="hexSearch" type="text" placeholder="DE AD BE EF or VIN text" spellcheck="false" />
+            </label>
+            <button id="hexSearchButton" class="btn btn-ghost" type="button">Find</button>
+          </div>
+          <div class="hex-head mono">
+            <span>Offset</span>
+            <span>00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F</span>
+            <span>ASCII</span>
+          </div>
+          <div id="hexViewer" class="hex-viewer mono">
+            <p class="muted">Load a BIN/ROM file. Files stay in this browser.</p>
+          </div>
+          <div class="hex-pager">
+            <button id="hexPrev" class="btn btn-ghost" type="button">← Previous</button>
+            <span id="hexPage" class="muted">No data</span>
+            <button id="hexNext" class="btn btn-ghost" type="button">Next →</button>
+          </div>
+        </div>
+        <div class="binary-column byte-column">
+          <h3>Selection</h3>
+          <div class="kv">
+            <span>Offset</span><strong id="byteOffset">—</strong>
+            <span>Original</span><strong id="byteOriginal">—</strong>
+            <span>Current</span><strong id="byteCurrent">—</strong>
+          </div>
+          <label class="field">
+            <span>Replace byte (hex)</span>
+            <input id="byteEdit" type="text" maxlength="2" placeholder="FF" spellcheck="false" />
+          </label>
+          <button id="byteApply" class="btn" type="button" disabled>Stage byte edit</button>
+          <h3>VIN scan</h3>
+          <p class="muted">Finds printable 17-character VIN-like strings; verify manually.</p>
+          <div id="vinResults" class="vin-results">
+            <p class="muted">No BIN loaded</p>
+          </div>
+        </div>
+      </div>
+      <div class="xdf-preview">
+        <div class="panel-head">
+          <div>
+            <h3 id="xdfPreviewTitle">XDF item preview</h3>
+            <p id="xdfPreviewMeta" class="muted">Select an XDF item to jump into the binary.</p>
+          </div>
+          <label class="check">
+            <input id="xdfApplyMath" type="checkbox" />
+            Apply simple X equation
+          </label>
+        </div>
+        <div class="xdf-table-layout">
+          <div id="xdfRawTable" class="table-scroll xdf-raw-table"></div>
+          <canvas id="xdfHeatmap" aria-label="XDF binary table heat map"></canvas>
+        </div>
+        <div class="surface3d-block">
+          <div class="surface3d-toolbar">
+            <p id="xdfSurfaceMeta" class="muted">XDF 3D map</p>
+            <label class="check">
+              <input id="xdfSurfaceTranspose" type="checkbox" />
+              Transpose
+            </label>
+            <button id="xdfSurfaceReset" class="btn btn-ghost" type="button">Reset view</button>
+          </div>
+          <canvas id="xdfSurface3d" class="surface3d-canvas" aria-label="XDF table 3D surface"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <div class="lower-workspace">
+      <section class="panel calculator-panel">
+        <div class="panel-head">
+          <div>
+            <h2>Decode calculator</h2>
+            <p class="muted">engineering = raw × scale + offset</p>
+          </div>
+        </div>
+        <div class="calculator-grid">
+          <label class="field">
+            <span>Hex bytes</span>
+            <input id="calcHex" type="text" value="00052C34" spellcheck="false" />
+          </label>
+          <label class="field">
+            <span>Type</span>
+            <select id="calcType">
+              <option value="u8">uint8</option>
+              <option value="i8">int8</option>
+              <option value="u16">uint16</option>
+              <option value="i16">int16</option>
+              <option value="u32">uint32</option>
+              <option value="i32" selected>int32</option>
+              <option value="f32">float32</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Endian</span>
+            <select id="calcEndian">
+              <option value="be" selected>Big endian</option>
+              <option value="le">Little endian</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Scale</span>
+            <input id="calcScale" type="number" step="any" value="0.00390625" />
+          </label>
+          <label class="field">
+            <span>Offset</span>
+            <input id="calcOffset" type="number" step="any" value="0" />
+          </label>
+          <div class="calc-result">
+            <span>Raw</span><strong id="calcRaw">—</strong>
+            <span>Engineering</span><strong id="calcEngineering">—</strong>
+            <span>Binary</span><code id="calcBinary">—</code>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel simulator-panel">
+        <div class="panel-head">
+          <div>
+            <h2>Calibration table simulator</h2>
+            <p class="muted">Editable example only · RPM × load → value</p>
+          </div>
+          <button id="simExport" class="btn btn-ghost" type="button">Export table CSV</button>
+        </div>
+        <div class="sim-controls">
+          <label class="field grow">
+            <span>RPM <output id="simRpmLabel">3000</output></span>
+            <input id="simRpm" type="range" min="800" max="7000" step="100" value="3000" />
+          </label>
+          <label class="field grow">
+            <span>Load kPa <output id="simLoadLabel">100</output></span>
+            <input id="simLoad" type="range" min="20" max="220" step="5" value="100" />
+          </label>
+          <div class="sim-output">
+            <span>Interpolated</span>
+            <strong id="simValue">—</strong>
+          </div>
+        </div>
+        <div class="sim-layout">
+          <div class="table-scroll sim-table-wrap">
+            <table id="simTable" class="sim-table"></table>
+          </div>
+          <canvas id="simHeatmap" aria-label="Calibration table heat map"></canvas>
+        </div>
+        <div class="surface3d-block">
+          <div class="surface3d-toolbar">
+            <p id="simSurfaceMeta" class="muted">Simulator 3D map</p>
+            <label class="check">
+              <input id="simSurfaceTranspose" type="checkbox" />
+              Transpose
+            </label>
+            <button id="simSurfaceReset" class="btn btn-ghost" type="button">Reset view</button>
+          </div>
+          <canvas id="simSurface3d" class="surface3d-canvas" aria-label="Calibration table 3D surface"></canvas>
+        </div>
+      </section>
+    </div>
+
+    <script type="module" src="./app.js"></script>
+    <script type="module" src="./workbench.js"></script>
+    <script type="module" src="./binaryViewer.js"></script>
+  </body>
+</html>

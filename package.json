@@ -7,7 +7,10 @@
     "init_and_start_vcan_server": "./RPI_system/start_vcan.sh && npm run test_server",
     "start_vcan_server": "NODE_ENV=production CHANNEL=vcan0 TYPE=live node index.js",
     "can_server": "NODE_ENV=production TYPE=live CHANNEL=can0 node index.js",
-    "test_server": "NODE_ENV=development TYPE=development CHANNEL=vcan0 node index.js"
+    "test_server": "NODE_ENV=development TYPE=development CHANNEL=vcan0 node index.js",
+    "demo:can-decoder": "node demos/can-dump-decoder/server.mjs",
+    "demo:can-decoder:sim": "AUTODASH_SIM_BOARD=1 node demos/can-dump-decoder/server.mjs",
+    "demo:can-decoder:cli": "node demos/can-dump-decoder/cli.mjs"
   },
   "author": "Michael J Mathews II",
   "dependencies": {
