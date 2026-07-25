@@ -32,6 +32,22 @@ intentionally not labeled as XDF: XDF/ADX, DBC, A2L and ODX describe different
 layers, and safe flashing additionally needs target-specific segment,
 checksum, security and recovery logic.
 
+## BIN / XDF viewer
+
+- Loads raw `.bin`, `.rom` or original calibration files entirely client-side
+- 16-byte hex/ASCII view with jump and hex/ASCII search
+- Scans for VIN-like 17-character ASCII strings
+- Stages individual byte edits, supports undo and exports a modified copy
+- Parses common TunerPro XDF 1.60/1.80 constants, flags and tables
+- Selecting an XDF item jumps to and highlights its binary address
+- Shows raw table cells and a heatmap; optionally evaluates simple arithmetic
+  XDF equations containing `X`
+- Includes an open synthetic BIN/XDF demo generated in the browser
+
+This is a research viewer, not an ECU writer. XDF files vary, complex equations
+and linked axes are only summarized, and address validity depends on using the
+exact matching binary/strategy.
+
 ## Run
 
 ```bash

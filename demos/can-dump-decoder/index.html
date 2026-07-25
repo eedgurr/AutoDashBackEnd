@@ -212,6 +212,100 @@
       </div>
     </section>
 
+    <section class="panel binary-panel">
+      <div class="panel-head">
+        <div>
+          <h2>BIN / XDF viewer</h2>
+          <p class="muted">Client-side only · raw binary, VIN scan, staged hex edits and XDF address navigation</p>
+        </div>
+        <p id="binaryStatus" class="muted">Load a BIN and/or XDF</p>
+      </div>
+      <div class="binary-toolbar">
+        <button id="binaryDemo" class="btn" type="button">Load synthetic demo</button>
+        <label class="btn btn-ghost file-button">
+          Load BIN
+          <input id="binFile" type="file" accept=".bin,.rom,.ori,.hex,application/octet-stream" hidden />
+        </label>
+        <label class="btn btn-ghost file-button">
+          Load XDF
+          <input id="xdfFile" type="file" accept=".xdf,.xml,text/xml,application/xml" hidden />
+        </label>
+        <button id="binExport" class="btn btn-ghost" type="button" disabled>Export modified BIN</button>
+        <button id="binUndo" class="btn btn-ghost" type="button" disabled>Undo edits</button>
+      </div>
+      <div class="binary-workspace">
+        <div class="binary-column xdf-column">
+          <label class="field">
+            <span>XDF items</span>
+            <input id="xdfFilter" type="text" placeholder="Filter title / category" />
+          </label>
+          <p id="xdfMeta" class="muted">No XDF loaded</p>
+          <div id="xdfItems" class="xdf-items"></div>
+        </div>
+        <div class="binary-column hex-column">
+          <div class="hex-controls">
+            <label class="field">
+              <span>Jump offset</span>
+              <input id="hexJump" type="text" placeholder="0x1000" spellcheck="false" />
+            </label>
+            <button id="hexJumpButton" class="btn btn-ghost" type="button">Go</button>
+            <label class="field grow">
+              <span>Find hex / ASCII</span>
+              <input id="hexSearch" type="text" placeholder="DE AD BE EF or VIN text" spellcheck="false" />
+            </label>
+            <button id="hexSearchButton" class="btn btn-ghost" type="button">Find</button>
+          </div>
+          <div class="hex-head mono">
+            <span>Offset</span>
+            <span>00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F</span>
+            <span>ASCII</span>
+          </div>
+          <div id="hexViewer" class="hex-viewer mono">
+            <p class="muted">Load a BIN/ROM file. Files stay in this browser.</p>
+          </div>
+          <div class="hex-pager">
+            <button id="hexPrev" class="btn btn-ghost" type="button">← Previous</button>
+            <span id="hexPage" class="muted">No data</span>
+            <button id="hexNext" class="btn btn-ghost" type="button">Next →</button>
+          </div>
+        </div>
+        <div class="binary-column byte-column">
+          <h3>Selection</h3>
+          <div class="kv">
+            <span>Offset</span><strong id="byteOffset">—</strong>
+            <span>Original</span><strong id="byteOriginal">—</strong>
+            <span>Current</span><strong id="byteCurrent">—</strong>
+          </div>
+          <label class="field">
+            <span>Replace byte (hex)</span>
+            <input id="byteEdit" type="text" maxlength="2" placeholder="FF" spellcheck="false" />
+          </label>
+          <button id="byteApply" class="btn" type="button" disabled>Stage byte edit</button>
+          <h3>VIN scan</h3>
+          <p class="muted">Finds printable 17-character VIN-like strings; verify manually.</p>
+          <div id="vinResults" class="vin-results">
+            <p class="muted">No BIN loaded</p>
+          </div>
+        </div>
+      </div>
+      <div class="xdf-preview">
+        <div class="panel-head">
+          <div>
+            <h3 id="xdfPreviewTitle">XDF item preview</h3>
+            <p id="xdfPreviewMeta" class="muted">Select an XDF item to jump into the binary.</p>
+          </div>
+          <label class="check">
+            <input id="xdfApplyMath" type="checkbox" />
+            Apply simple X equation
+          </label>
+        </div>
+        <div class="xdf-table-layout">
+          <div id="xdfRawTable" class="table-scroll xdf-raw-table"></div>
+          <canvas id="xdfHeatmap" aria-label="XDF binary table heat map"></canvas>
+        </div>
+      </div>
+    </section>
+
     <div class="lower-workspace">
       <section class="panel calculator-panel">
         <div class="panel-head">
@@ -293,5 +387,6 @@
 
     <script type="module" src="./app.js"></script>
     <script type="module" src="./workbench.js"></script>
+    <script type="module" src="./binaryViewer.js"></script>
   </body>
 </html>
