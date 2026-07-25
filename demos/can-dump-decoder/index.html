@@ -216,22 +216,35 @@
       <div class="panel-head">
         <div>
           <h2>BIN / XDF viewer</h2>
-          <p class="muted">Client-side only · raw binary, VIN scan, staged hex edits and XDF address navigation</p>
+          <p class="muted">Client-side only · iPhone-friendly openers · VIN scan · staged hex edits · XDF navigation</p>
         </div>
         <p id="binaryStatus" class="muted">Load a BIN and/or XDF</p>
       </div>
       <div class="binary-toolbar">
         <button id="binaryDemo" class="btn" type="button">Load synthetic demo</button>
-        <label class="btn btn-ghost file-button">
-          Load BIN
-          <input id="binFile" type="file" accept=".bin,.rom,.ori,.hex,application/octet-stream" hidden />
-        </label>
-        <label class="btn btn-ghost file-button">
-          Load XDF
-          <input id="xdfFile" type="file" accept=".xdf,.xml,text/xml,application/xml" hidden />
-        </label>
+        <button id="binarySampleFetch" class="btn btn-ghost" type="button">Fetch sample BIN+XDF</button>
+        <a class="btn btn-ghost" href="./samples/synthetic-demo.bin" download>Download sample BIN</a>
+        <a class="btn btn-ghost" href="./samples/synthetic-demo.xdf" download>Download sample XDF</a>
         <button id="binExport" class="btn btn-ghost" type="button" disabled>Export modified BIN</button>
         <button id="binUndo" class="btn btn-ghost" type="button" disabled>Undo edits</button>
+      </div>
+      <div class="binary-openers">
+        <p class="muted binary-tip">
+          iPhone tip: Files often look grayed out when apps filter by extension.
+          These openers accept any file; we detect BIN vs XDF after you pick one.
+        </p>
+        <label class="file-field">
+          <span>Open BIN / ROM / any binary</span>
+          <input id="binFile" type="file" />
+        </label>
+        <label class="file-field">
+          <span>Open XDF / XML definition</span>
+          <input id="xdfFile" type="file" />
+        </label>
+        <label class="file-field">
+          <span>Open any file (auto-detect)</span>
+          <input id="anyBinaryFile" type="file" multiple />
+        </label>
       </div>
       <div class="binary-workspace">
         <div class="binary-column xdf-column">

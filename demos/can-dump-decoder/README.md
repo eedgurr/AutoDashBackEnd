@@ -34,7 +34,11 @@ checksum, security and recovery logic.
 
 ## BIN / XDF viewer
 
-- Loads raw `.bin`, `.rom` or original calibration files entirely client-side
+- Auto-loads a synthetic BIN/XDF so the page is usable before you attach files
+- iPhone-friendly openers with **no extension filter** (iOS Files greys out
+  `.bin`/`.xdf` when `accept=` is too strict)
+- Auto-detect open for unknown extensions, including content sniffing for XDF/XML
+- Downloadable / fetchable sample files under [`samples/`](./samples/)
 - 16-byte hex/ASCII view with jump and hex/ASCII search
 - Scans for VIN-like 17-character ASCII strings
 - Stages individual byte edits, supports undo and exports a modified copy
@@ -42,7 +46,6 @@ checksum, security and recovery logic.
 - Selecting an XDF item jumps to and highlights its binary address
 - Shows raw table cells and a heatmap; optionally evaluates simple arithmetic
   XDF equations containing `X`
-- Includes an open synthetic BIN/XDF demo generated in the browser
 
 This is a research viewer, not an ECU writer. XDF files vary, complex equations
 and linked axes are only summarized, and address validity depends on using the

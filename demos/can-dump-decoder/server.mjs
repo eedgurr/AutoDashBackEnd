@@ -31,6 +31,10 @@ const TYPES = {
   ".txt": "text/plain; charset=utf-8",
   ".json": "application/json; charset=utf-8",
   ".md": "text/markdown; charset=utf-8",
+  ".xdf": "application/xml; charset=utf-8",
+  ".xml": "application/xml; charset=utf-8",
+  ".bin": "application/octet-stream",
+  ".rom": "application/octet-stream",
 };
 
 const uiClients = new Set();

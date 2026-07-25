@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<XDFFORMAT version="1.80">
+  <XDFHEADER>
+    <deftitle>AutoDash Synthetic ECU</deftitle>
+    <author>AutoDash demo</author>
+    <BASEOFFSET offset="0" subtract="0" />
+    <DEFAULTS datasizeinbits="8" signed="0" lsbfirst="0" />
+  </XDFHEADER>
+  <XDFCATEGORY index="0x1" name="Fuel" />
+  <XDFCATEGORY index="0x2" name="Limits" />
+  <XDFCONSTANT uniqueid="0x100">
+    <title>RPM Limit</title>
+    <CATEGORYMEM category="0x2" />
+    <EMBEDDEDDATA mmedaddress="0x0800" mmedelementsizebits="16" />
+    <units>RPM</units>
+    <MATH equation="X" />
+  </XDFCONSTANT>
+  <XDFTABLE uniqueid="0x200">
+    <title>Example VE Table</title>
+    <description>Synthetic values; not from a vehicle</description>
+    <CATEGORYMEM category="0x1" />
+    <XDFAXIS id="x"><EMBEDDEDDATA mmedaddress="0x1000" mmedelementsizebits="8" /></XDFAXIS>
+    <XDFAXIS id="y"><units>load</units><indexcount>6</indexcount></XDFAXIS>
+    <XDFAXIS id="z">
+      <EMBEDDEDDATA mmedelementsizebits="8" mmedrowcount="6" mmedcolcount="8" />
+      <units>%</units>
+      <MATH equation="X" />
+    </XDFAXIS>
+  </XDFTABLE>
+</XDFFORMAT>

@@ -297,10 +297,78 @@ function loadBinary(bytes, name) {
   updateStatus();
 }
 
-document.getElementById("binFile").addEventListener("change", async (event) => {
-  const file = event.target.files?.[0];
+function extensionOf(name = "") {
+  const match = /\.([^.]+)$/.exec(name);
+  return match ? match[1].toLowerCase() : "";
+}
+
+function looksLikeXdfText(text) {
+  const head = text.slice(0, 4000);
+  return /<XDFFORMAT[\s>]/i.test(head) || /<XDFHEADER[\s>]/i.test(head);
+}
+
+async function openBinaryFile(file) {
   if (!file) return;
-  loadBinary(await file.arrayBuffer(), file.name);
+  try {
+    loadBinary(await file.arrayBuffer(), file.name || "binary.bin");
+    updateStatus(`loaded ${file.name || "binary.bin"}`);
+  } catch (error) {
+    updateStatus(`BIN open failed: ${error.message}`);
+  }
+}
+
+async function openXdfFile(file) {
+  if (!file) return;
+  try {
+    const text = await file.text();
+    if (!looksLikeXdfText(text)) {
+      updateStatus(
+        `${file.name} does not look like an XDF/XML definition. Try Open any file or Load synthetic demo.`
+      );
+      return;
+    }
+    loadXdf(text, file.name || "definition.xdf");
+    updateStatus(`loaded ${file.name || "definition.xdf"}`);
+  } catch (error) {
+    updateStatus(`XDF open failed: ${error.message}`);
+  }
+}
+
+async function openAnyFiles(fileList) {
+  const files = [...(fileList || [])];
+  if (!files.length) return;
+  for (const file of files) {
+    const extension = extensionOf(file.name);
+    if (["xdf", "xtf", "xml"].includes(extension)) {
+      await openXdfFile(file);
+      continue;
+    }
+    if (["bin", "rom", "ori", "hex", "ecu", "mod"].includes(extension)) {
+      await openBinaryFile(file);
+      continue;
+    }
+    // Unknown extension: sniff content (common on iOS Files).
+    const buffer = await file.arrayBuffer();
+    const text = new TextDecoder("utf-8", { fatal: false }).decode(
+      buffer.slice(0, Math.min(buffer.byteLength, 4000))
+    );
+    if (looksLikeXdfText(text)) {
+      loadXdf(new TextDecoder().decode(buffer), file.name || "definition.xdf");
+      updateStatus(`auto-detected XDF: ${file.name}`);
+    } else {
+      loadBinary(buffer, file.name || "binary.bin");
+      updateStatus(`auto-detected BIN: ${file.name}`);
+    }
+  }
+}
+
+document.getElementById("binFile").addEventListener("change", async (event) => {
+  await openBinaryFile(event.target.files?.[0]);
+  event.target.value = "";
+});
+
+document.getElementById("anyBinaryFile").addEventListener("change", async (event) => {
+  await openAnyFiles(event.target.files);
   event.target.value = "";
 });
 
@@ -455,9 +523,7 @@ function loadXdf(text, name) {
 }
 
 document.getElementById("xdfFile").addEventListener("change", async (event) => {
-  const file = event.target.files?.[0];
-  if (!file) return;
-  loadXdf(await file.text(), file.name);
+  await openXdfFile(event.target.files?.[0]);
   event.target.value = "";
 });
 
@@ -661,7 +727,7 @@ const DEMO_XDF = `<?xml version="1.0" encoding="utf-8"?>
   </XDFTABLE>
 </XDFFORMAT>`;
 
-document.getElementById("binaryDemo").addEventListener("click", () => {
+function buildSyntheticBinary() {
   const bytes = new Uint8Array(0x1200);
   bytes.fill(0xff);
   const vin = new TextEncoder().encode("1AUT0DASH0DEM0001");
@@ -674,12 +740,60 @@ document.getElementById("binaryDemo").addEventListener("click", () => {
         45 + row * 7 + Math.round(Math.sin(column / 2) * 8);
     }
   }
-  loadBinary(bytes, "synthetic-demo.bin");
+  return bytes;
+}
+
+function loadSyntheticDemo(note = "synthetic demo—not vehicle data") {
+  loadBinary(buildSyntheticBinary(), "synthetic-demo.bin");
   loadXdf(DEMO_XDF, "synthetic-demo.xdf");
-  updateStatus("synthetic demo—not vehicle data");
+  const firstTable = state.xdfItems.find((item) => item.kind === "table");
+  if (firstTable) {
+    state.selectedItem = firstTable;
+    renderXdfItems();
+    renderXdfPreview();
+    goToOffset(firstTable.address);
+  }
+  updateStatus(note);
+}
+
+document.getElementById("binaryDemo").addEventListener("click", () => {
+  loadSyntheticDemo();
 });
+
+document
+  .getElementById("binarySampleFetch")
+  .addEventListener("click", async () => {
+    try {
+      const [binResponse, xdfResponse] = await Promise.all([
+        fetch("./samples/synthetic-demo.bin", { cache: "no-store" }),
+        fetch("./samples/synthetic-demo.xdf", { cache: "no-store" }),
+      ]);
+      if (!binResponse.ok || !xdfResponse.ok) {
+        throw new Error("sample fetch failed");
+      }
+      loadBinary(await binResponse.arrayBuffer(), "synthetic-demo.bin");
+      loadXdf(await xdfResponse.text(), "synthetic-demo.xdf");
+      const firstTable = state.xdfItems.find((item) => item.kind === "table");
+      if (firstTable) {
+        state.selectedItem = firstTable;
+        renderXdfItems();
+        renderXdfPreview();
+        goToOffset(firstTable.address);
+      }
+      updateStatus("fetched sample BIN+XDF from server");
+    } catch (error) {
+      updateStatus(`sample fetch failed: ${error.message}`);
+      loadSyntheticDemo("offline fallback synthetic demo");
+    }
+  });
 
 renderXdfItems();
 renderHex();
 renderXdfPreview();
 updateStatus();
+
+// Phone-first: show a working viewer immediately so the page is never an empty gray shell.
+const params = new URLSearchParams(location.search);
+if (params.get("demo") !== "0") {
+  loadSyntheticDemo("auto-loaded synthetic demo · use openers above for your files");
+}
