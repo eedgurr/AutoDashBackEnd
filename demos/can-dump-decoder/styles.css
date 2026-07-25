@@ -92,6 +92,65 @@ code {
   margin-bottom: 1rem;
 }
 
+.live-controls {
+  border-color: rgba(15, 122, 76, 0.28);
+}
+
+.live-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  align-items: end;
+}
+
+.grow {
+  flex: 1 1 220px;
+}
+
+input[type="text"] {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.7rem 0.8rem;
+  background: #fff;
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 0.86rem;
+}
+
+.btn {
+  border: 0;
+  border-radius: 12px;
+  padding: 0.72rem 1rem;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+
+.live-status {
+  margin: 0;
+}
+
+.hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.4;
+}
+
 .field {
   display: grid;
   gap: 0.35rem;

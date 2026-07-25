@@ -19,10 +19,32 @@
         <p class="brand">AutoDash</p>
         <h1>CAN Dump Decoder</h1>
         <p class="lede">
-          Decode Racepak/Holley <code>candump</code> logs with the same mask and
-          scaling as the Pi dash backend — no car hardware required.
+          Decode Racepak logs, or connect a live <strong>ESP32 / Pi / Arduino</strong> board
+          over WebSocket using the same gauge names as the dash backend.
         </p>
       </header>
+
+      <section class="controls live-controls" aria-label="Live board">
+        <div class="live-row">
+          <label class="field grow">
+            <span>Live board WebSocket</span>
+            <input
+              id="wsUrl"
+              type="text"
+              spellcheck="false"
+              placeholder="ws://127.0.0.1:4173/ws"
+              value=""
+            />
+          </label>
+          <button id="wsConnect" type="button" class="btn">Connect</button>
+          <button id="wsDisconnect" type="button" class="btn btn-ghost" disabled>Disconnect</button>
+        </div>
+        <p id="wsStatus" class="muted live-status">Offline — using file/sample mode.</p>
+        <p class="hint">
+          Easy path: run <code>AUTODASH_SIM_BOARD=1 npm run demo:can-decoder</code> then Connect.
+          Real boards: see <code>boards/README.md</code>.
+        </p>
+      </section>
 
       <section class="controls" aria-label="Load dump">
         <label class="field">
